@@ -1,28 +1,24 @@
 tasks:
   build-backend:
     steps:
-    # - checkout
+    - checkout
     # - docker/build:
     #     image: saurabh3460/web
     #     push: true
     #     tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
     #     dockerfile: django/Dockerfile
     #     context: django/
-    - commands:
-      - |
-          # cp docker-compose.yaml angular
-          cat ~/.docker/config.json
+    - run: |
+          cp docker-compose.yaml angular
     - workspace/persist:
         paths: [angular]
-
 
   build-frontend:
     depends: [build-backend]
     steps:
     - workspace/attach
-    - commands:
-      - |
-          ls
+    - run: |
+        ls 
     - docker/build:
         image: saurabh3460/ui
         push: true
