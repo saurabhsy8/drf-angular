@@ -87,9 +87,10 @@ WSGI_APPLICATION = 'todoproj.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'HOST': 'db',
+        'NAME': os.environ['DB_NAME_DJANGO'],
+        'USER': os.environ['DB_USER_DJANGO'],
+        'PASSWORD': os.environ['DB_PASSWORD_DJANGO'],
+        'HOST': os.environ['CLOUD_SQL_INSTANCE_IP'],
         'PORT': 5432,
     }
 }
@@ -133,10 +134,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CORS_ORIGIN_WHITELIST = (
-    'localhost:4200',
-    'localhost:8080',
-)
+# CORS_ORIGIN_WHITELIST = (
+#     'localhost:4200',
+#     'localhost:8080',
+# )
 
 ## Add JWT authentication to default authentication classes
 REST_FRAMEWORK = {
@@ -153,13 +154,13 @@ API_IDENTIFIER = 'http://djangoangularapi'
 PUBLIC_KEY = None
 JWT_ISSUER = None
 
-if AUTH0_DOMAIN:
-    jsonurl = request.urlopen('https://' + AUTH0_DOMAIN + '/.well-known/jwks.json')
-    jwks = json.loads(jsonurl.read().decode('utf-8'))
-    cert = '-----BEGIN CERTIFICATE-----\n' + jwks['keys'][0]['x5c'][0] + '\n-----END CERTIFICATE-----'
-    certificate = load_pem_x509_certificate(cert.encode('utf-8'), default_backend())
-    PUBLIC_KEY = certificate.public_key()
-    JWT_ISSUER = 'https://' + AUTH0_DOMAIN + '/'
+# if AUTH0_DOMAIN:
+#     jsonurl = request.urlopen('https://' + AUTH0_DOMAIN + '/.well-known/jwks.json')
+#     jwks = json.loads(jsonurl.read().decode('utf-8'))
+#     cert = '-----BEGIN CERTIFICATE-----\n' + jwks['keys'][0]['x5c'][0] + '\n-----END CERTIFICATE-----'
+#     certificate = load_pem_x509_certificate(cert.encode('utf-8'), default_backend())
+#     PUBLIC_KEY = certificate.public_key()
+#     JWT_ISSUER = 'https://' + AUTH0_DOMAIN + '/'
 
 def jwt_get_username_from_payload_handler(payload):
     return 'auth0user'

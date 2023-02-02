@@ -3,6 +3,9 @@ version: "3"
 services:
   db:
     image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
   dj:
     container_name: dj
     build: django
@@ -10,11 +13,15 @@ services:
     volumes:
       - ./django:/code
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - db
     environment:
       - DJANGO_SETTINGS=dev
+      - DB_NAME_DJANGO=postgres
+      - DB_USER_DJANGO=postgres
+      - DB_PASSWORD_DJANGO=postgres
+      - CLOUD_SQL_INSTANCE_IP=db
   ng:
     container_name: ng
     build: angular
