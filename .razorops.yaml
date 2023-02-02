@@ -15,12 +15,12 @@ tasks:
   build-backend:
     steps:
     - checkout
-    - docker/build:
-        image: saurabh3460/web
-        push: true
-        tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
-        dockerfile: django/Dockerfile
-        context: django/
+    # - docker/build:
+    #     image: saurabh3460/web
+    #     push: true
+    #     tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
+    #     dockerfile: django/Dockerfile
+    #     context: django/
     - workspace/persist:
         paths: [django]
 
@@ -29,14 +29,14 @@ tasks:
     steps:
     - workspace/attach
     - commands:
-    - |
-        ls 
+      - |
+          ls 
     - docker/build:
         image: saurabh3460/ui
         push: true
-        tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
-        dockerfile: angular/Dockerfile
-        context: angular/
+        tags: ["${CI_COMMIT_SHA:0:8}", "latest"]
+        dockerfile: django/angular/Dockerfile
+        context: django/angular/
 
   deploy:
     depends: [build-backend, build-frontend]
