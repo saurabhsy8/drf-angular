@@ -1,28 +1,20 @@
-# global:
-#   runner: 
-#     containers:
-#     - image: razorci/golang:1.14
-#       environment:
-#       - DB_CONNECTION=mongodb://appuser:apppass@localhost:27017/test
-#       - DB_NAME=test
-#     - image: bitnami/mongodb:4.4.1
-#       environment:
-#       - MONGODB_ROOT_PASSWORD=adminpass
-#       - MONGODB_DATABASE=test
-#       - MONGODB_USERNAME=appuser
-#       - MONGODB_PASSWORD=apppass
 tasks:
   build-backend:
     steps:
-    - checkout
+    # - checkout
     # - docker/build:
     #     image: saurabh3460/web
     #     push: true
     #     tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
     #     dockerfile: django/Dockerfile
     #     context: django/
+    - commands:
+      - |
+          # cp docker-compose.yaml angular
+          cat ~/.docker/config.json
     - workspace/persist:
-        paths: [django]
+        paths: [angular]
+
 
   build-frontend:
     depends: [build-backend]
@@ -30,25 +22,26 @@ tasks:
     - workspace/attach
     - commands:
       - |
-          ls 
+          ls
     - docker/build:
         image: saurabh3460/ui
         push: true
         tags: ["${CI_COMMIT_SHA:0:8}", "latest"]
-        dockerfile: django/angular/Dockerfile
-        context: django/angular/
+        dockerfile: angular/Dockerfile
+        context: angular
 
   deploy:
     depends: [build-backend, build-frontend]
     variables:
     - DOCKER_TAG=${CI_COMMIT_SHA:0:8}
     steps:
-    - commands:
-      - |
-        export CONTAINER_NAME=web-app # change as per yout app
-        export IMAGE=acme/web-app:v1 # change as per your app
+    - workspace/attach
+    - run: |
+        ls angular
         ssh ubuntu@43.204.22.232 <<'ENDSSH'
-        docker images
+        cd angular
+        docker-compose pull
+        docker-compose up
         ENDSSH
 
 # trigger:

@@ -8,7 +8,7 @@ services:
       - POSTGRES_USER=postgres
   dj:
     container_name: dj
-    image: saurabh3460/web
+    build: django
     command: python manage.py runserver 0.0.0.0:80
     volumes:
       - ./django:/code
@@ -24,6 +24,6 @@ services:
       - CLOUD_SQL_INSTANCE_IP=db
   ng:
     container_name: ng
-    image: saurabh3460/ui
+    build: angular
     ports:
       - "8080:80"
