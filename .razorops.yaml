@@ -22,9 +22,10 @@ tasks:
         dockerfile: django/Dockerfile
         context: django/
     - workspace/persist:
-        paths: [bin]
+        paths: [django]
 
   build-frontend:
+    depends: [build-backend]
     steps:
     - workspace/attach
     - commands:
@@ -37,23 +38,18 @@ tasks:
         dockerfile: angular/Dockerfile
         context: angular/
 
-#   deploy:
-#     depends: [build-backend, build-frontend]
-#     variables:
-#     - ARGOCD_SERVER=argocd.codecrux.com
-#     - APP_NAME=transpora-transpora
-#     - DOCKER_TAG=${CI_COMMIT_SHA:0:8}
-#     - ARGOCD_VERSION=v2.5.9
-#     steps:
-#     - commands:
-#       - |
-#         export CONTAINER_NAME=web-app # change as per yout app
-#         export IMAGE=acme/web-app:v1 # change as per your app
-#         ssh root@example.com <<'ENDSSH'
-#         docker pull $IMAGE
-#         docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME
-#         docker run --name=$CONTAINER_NAME --restart=always -v $PWD:/app -d $IMAGE
-#         ENDSSH
+  deploy:
+    depends: [build-backend, build-frontend]
+    variables:
+    - DOCKER_TAG=${CI_COMMIT_SHA:0:8}
+    steps:
+    - commands:
+      - |
+        export CONTAINER_NAME=web-app # change as per yout app
+        export IMAGE=acme/web-app:v1 # change as per your app
+        ssh ubuntu@43.204.22.232 <<'ENDSSH'
+        docker images
+        ENDSSH
 
 # trigger:
 #   when: branch == "release-dev"
