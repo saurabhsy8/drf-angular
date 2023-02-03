@@ -2,12 +2,12 @@ tasks:
   build-backend:
     steps:
     - checkout
-    # - docker/build:
-    #     image: saurabh3460/web
-    #     push: true
-    #     tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
-    #     dockerfile: django/Dockerfile
-    #     context: django/
+    - docker/build:
+        image: saurabh3460/web
+        push: true
+        tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
+        dockerfile: django/Dockerfile
+        context: django/
     - run: |
           cp docker-compose.yaml angular
     - workspace/persist:
@@ -17,8 +17,6 @@ tasks:
     depends: [build-backend]
     steps:
     - workspace/attach
-    - run: |
-        ls 
     - docker/build:
         image: saurabh3460/ui
         push: true
@@ -33,11 +31,12 @@ tasks:
     steps:
     - workspace/attach
     - run: |
-        ls angular
-        ssh ubuntu@43.204.22.232 <<'ENDSSH'
         cd angular
-        docker-compose pull
-        docker-compose up
+        scp docker-compose.yaml ubuntu@43.204.22.232:docker-compose.yaml
+        ssh -v ubuntu@43.204.22.232 <<'ENDSSH'
+          docker-compose pull
+          docker-compose down
+          docker-compose up -d
         ENDSSH
 
 # trigger:

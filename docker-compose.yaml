@@ -10,8 +10,6 @@ services:
     container_name: dj
     image: saurabh3460/web
     command: python manage.py runserver 0.0.0.0:80
-    volumes:
-      - ./django:/code
     ports:
       - "8081:80"
     depends_on:
