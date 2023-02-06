@@ -1,0 +1,105 @@
+- hosts: all
+  become: true
+  vars:
+    container_count: 4
+    default_container_name: docker
+    default_container_image: ubuntu
+    default_container_command: sleep 1d
+
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install required system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
+    - name: Add Docker Compose repository
+      shell: sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+    - name: Set execute permissions on the Docker Compose binary
+      file:
+        path: /usr/local/bin/docker-compose
+        mode: 0755
+
+    - name: Add remote "ubuntu" user to "docker" group
+      user:
+        name: "ubuntu"
+        groups: "docker"
+        append: yes
+
+# Install nginx
+
+    - name: Create nginx user
+      user:
+        name: nginx
+        state: present
+
+    - name: Install Nginx
+      become: yes
+      apt:
+        name: nginx
+        state: present
+
+    - name: Install certbot (Let's Encrypt)
+      become: yes
+      apt:
+        name: certbot
+        state: present
+
+    - name: Install certbot Nginx plugin
+      become: yes
+      apt:
+        name: python3-certbot-nginx
+        state: present
+
+    - name: Obtain SSL certificate with certbot
+      become: yes
+      command: certbot certonly --standalone --email {{ email }} -d {{ domain_name }} --agree-tos --non-interactive --cert-path /etc/letsencrypt/live/{{ domain_name }}
+      tags:
+        - cert
+
+    - name: Create Nginx config file
+      become: yes
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        mode: 0644
+
+    - name: Restart Nginx
+      become: yes
+      service:
+        name: nginx
+        state: restarted
