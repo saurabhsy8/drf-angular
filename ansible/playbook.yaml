@@ -1,10 +1,5 @@
 - hosts: all
   become: true
-  vars:
-    container_count: 4
-    default_container_name: docker
-    default_container_image: ubuntu
-    default_container_command: sleep 1d
 
   tasks:
     - name: Install aptitude
@@ -54,13 +49,19 @@
         path: /usr/local/bin/docker-compose
         mode: 0755
 
-    - name: Add remote "ubuntu" user to "docker" group
-      user:
-        name: "ubuntu"
-        groups: "docker"
-        append: yes
+    - name: Add user to docker group
+      shell: usermod -aG docker ubuntu
+      tags:
+        - docker
 
-# Install nginx
+    - name: Change ownership of Docker socket
+      file:
+        path: /var/run/docker.sock
+        owner: "ubuntu"
+      tags:
+        - docker
+
+####### Install nginx
 
     - name: Create nginx user
       user:
@@ -87,7 +88,7 @@
 
     - name: Obtain SSL certificate with certbot
       become: yes
-      command: certbot certonly --standalone --email {{ email }} -d {{ domain_name }} --agree-tos --non-interactive --cert-path /etc/letsencrypt/live/{{ domain_name }}
+      command: certbot --nginx  --email {{ email }} -d {{ domain_name }}
       tags:
         - cert
 
@@ -97,9 +98,13 @@
         src: nginx.conf.j2
         dest: /etc/nginx/nginx.conf
         mode: 0644
+      tags:
+        - nginx
 
     - name: Restart Nginx
       become: yes
       service:
         name: nginx
         state: restarted
+      tags:
+        - nginx

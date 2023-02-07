@@ -1,4 +1,4 @@
-vm1 ansible_host=43.204.22.232
+vm1 ansible_host=cloud-native.me
 
 [all]
 vm1

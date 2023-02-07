@@ -8,10 +8,8 @@ tasks:
         tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
         dockerfile: django/Dockerfile
         context: django/
-    - run: |
-          cp docker-compose.yaml angular
     - workspace/persist:
-        paths: [angular]
+        paths: [angular, docker-compose.yaml]
 
   build-frontend:
     depends: [build-backend]
@@ -26,19 +24,15 @@ tasks:
 
   deploy:
     depends: [build-backend, build-frontend]
-    variables:
-    - DOCKER_TAG=${CI_COMMIT_SHA:0:8}
     steps:
     - workspace/attach
     - run: |
-        cd angular
-        scp docker-compose.yaml ubuntu@43.204.22.232:docker-compose.yaml
-        ssh -v ubuntu@43.204.22.232 <<'ENDSSH'
+        cat ~/.ssh/config
+        scp docker-compose.yaml ubuntu@cloud-native.me:docker-compose.yaml
+        ssh -v ubuntu@cloud-native.me <<'ENDSSH'
           docker-compose pull
           docker-compose down
           docker-compose up -d
         ENDSSH
 
-# trigger:
-#   when: branch == "release-dev"
 
