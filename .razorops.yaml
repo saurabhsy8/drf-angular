@@ -27,7 +27,6 @@ tasks:
     steps:
     - workspace/attach
     - run: |
-        cat ~/.ssh/config
         scp docker-compose.yaml ubuntu@cloud-native.me:docker-compose.yaml
         ssh -v ubuntu@cloud-native.me <<'ENDSSH'
           docker-compose pull
